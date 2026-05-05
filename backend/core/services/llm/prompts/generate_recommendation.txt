@@ -1,0 +1,15 @@
+Based on the user's recent journal entries and burnout indicators, provide a personalized, compassionate recommendation to help them manage their mental health and burnout.
+
+Recent Journal Entries (last 7 days):
+{journal_entries}
+
+Current Burnout Score: {burnout_score}/10
+Chill Day Status: {chill_day}
+
+Please provide:
+1. A brief acknowledgment of their current state
+2. 2-3 specific, actionable recommendations tailored to their situation
+3. Why these recommendations might help based on their journal patterns
+4. Encouragement to seek professional help if burnout continues
+
+Keep the tone supportive, non-judgmental, and focused on empowerment rather than criticism.

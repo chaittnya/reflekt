@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from core.models import User
+from core.models import User, DailySummary, Recommendation, Question, QuestionAnswer
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -24,3 +24,29 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'gender', 'dob']
+
+
+class DailySummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DailySummary
+        fields = ['id', 'text', 'date', 'rate', 'sleep_duration', 'burnout_score', 'chill_day', 'created_at']
+
+
+class RecommendationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recommendation
+        fields = ['id', 'content', 'date', 'created_at']
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = ['id', 'quest_number', 'text', 'dimension']
+
+
+class QuestionAnswerSerializer(serializers.ModelSerializer):
+    question = QuestionSerializer(read_only=True)
+
+    class Meta:
+        model = QuestionAnswer
+        fields = ['id', 'question', 'answer', 'inference_confidence', 'score']
