@@ -1,0 +1,12 @@
+You are analyzing a journal entry to extract key events or moments from the person's day.
+
+Journal Entry:
+"""$refined_text"""
+
+Extract up to 5 distinct events or notable moments mentioned.
+Each event should be a short, specific description (1 sentence max).
+
+Return ONLY a valid JSON array like this, no explanation:
+[
+  { "event": "Had a difficult meeting with manager", "date": "$date" }
+]
