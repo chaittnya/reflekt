@@ -36,22 +36,41 @@ class DailySummary(models.Model):
         return f"{self.user.username} - {self.date}"
 
 
-class MemoryNode(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='memory_nodes')
-    daily_summary = models.ForeignKey(DailySummary, on_delete=models.CASCADE, related_name='memory_nodes')
-
-    def __str__(self):
-        return f"MemoryNode for {self.user.username} - {self.daily_summary.date}"
-
-
 class EventNode(models.Model):
-    memory_node = models.ForeignKey(MemoryNode, on_delete=models.CASCADE, related_name='event_nodes')
+
+    CATEGORY_CHOICES = [
+        ('work',        'Work & Career'),
+        ('health',      'Physical Health'),
+        ('mental',      'Mental Health'),
+        ('social',      'Social & Relationships'),
+        ('personal',    'Personal Achievement'),
+        ('financial',   'Financial'),
+        ('other',       'Other'),
+    ]
+
+    SENTIMENT_CHOICES = [
+        ('positive', 'Positive'),
+        ('negative', 'Negative'),
+        ('neutral',  'Neutral'),
+    ]
+
+    INTENSITY_CHOICES = [
+        (1, 'Low'),
+        (2, 'Moderate'),
+        (3, 'High'),
+        (4, 'Critical'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_nodes')
     daily_summary = models.ForeignKey(DailySummary, on_delete=models.CASCADE, related_name='event_nodes')
     event = models.TextField()
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='other')
+    sentiment = models.CharField(max_length=10, choices=SENTIMENT_CHOICES, default='neutral')
+    intensity = models.IntegerField(choices=INTENSITY_CHOICES, default=2)
     date = models.DateField()
 
     def __str__(self):
-        return f"Event: {self.event[:50]} on {self.date}"
+        return f"[{self.category}] {self.event[:60]} ({self.sentiment}, intensity={self.intensity})"
 
 
 class Question(models.Model):
@@ -66,18 +85,26 @@ class Question(models.Model):
 
 class QuestionAnswer(models.Model):
     CONFIDENCE_CHOICES = [
-        ('high', 'High'),
+        ('high',   'High'),
         ('medium', 'Medium'),
-        ('low', 'Low'),
+        ('low',    'Low'),
     ]
-    daily_summary = models.ForeignKey(DailySummary, on_delete=models.CASCADE, related_name='question_answers')
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers')
-    answer = models.TextField(null=True, blank=True)
+
+    SOURCE_CHOICES = [
+        ('inferred', 'Inferred by LLM'),
+        ('user',     'Answered by User'),
+    ]
+
+    daily_summary        = models.ForeignKey(DailySummary, on_delete=models.CASCADE, related_name='question_answers')
+    question             = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers')
+    answer               = models.TextField(null=True, blank=True)
+    score                = models.IntegerField(null=True, blank=True)  # 0 to 3
     inference_confidence = models.CharField(max_length=10, choices=CONFIDENCE_CHOICES, default='medium')
-    score = models.IntegerField(null=True, blank=True)  # 0 to 3 per our burnout logic
+    source               = models.CharField(max_length=10, choices=SOURCE_CHOICES, default='inferred')
+    created_at           = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.daily_summary} - Q{self.question.quest_number}"
+        return f"{self.daily_summary} - Q{self.question.quest_number} ({self.source})"
 
 
 class Recommendation(models.Model):

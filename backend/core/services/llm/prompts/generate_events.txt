@@ -1,12 +1,31 @@
-You are analyzing a journal entry to extract key events or moments from the person's day.
+You are a clinical mental health assistant analyzing a journal entry.
+Extract up to 5 significant events that could impact the person's mental health or stress levels.
+
+Focus on events like:
+- Work pressure, deadlines, conflicts with colleagues or manager
+- Relationship issues, arguments, loneliness
+- Physical health complaints, poor sleep, fatigue
+- Financial stress or worries
+- Personal wins, achievements, moments of joy or relief
+- Anxiety episodes, overwhelm, emotional breakdowns
 
 Journal Entry:
 """$refined_text"""
 
-Extract up to 5 distinct events or notable moments mentioned.
-Each event should be a short, specific description (1 sentence max).
+For each event provide:
+- event: short specific description (1 sentence)
+- category: one of [work, health, mental, social, personal, financial, other]
+- sentiment: one of [positive, negative, neutral]
+- intensity: 1 (low), 2 (moderate), 3 (high), 4 (critical)
+- date: "$date"
 
-Return ONLY a valid JSON array like this, no explanation:
+Return ONLY a valid JSON array, no explanation:
 [
-  { "event": "Had a difficult meeting with manager", "date": "$date" }
+  {
+    "event": "Received aggressive feedback from manager about project delay",
+    "category": "work",
+    "sentiment": "negative",
+    "intensity": 3,
+    "date": "$date"
+  }
 ]

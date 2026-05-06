@@ -1,5 +1,5 @@
 from django.utils import timezone
-from core.models import DailySummary, MemoryNode, EventNode, Question, QuestionAnswer
+from core.models import DailySummary, EventNode, Question, QuestionAnswer
 from core.services.stt import get_stt_service
 from core.services.llm import get_llm_service
 from core.services.burnout_service import calculate_burnout_score, calculate_chill_day
@@ -72,15 +72,17 @@ def process_journal_entry(user, audio_file, rate=None, sleep_duration=None):
             score=ans.get('score'),
         )
 
-    # Step 10: Save Memory + Event Nodes
-    MemoryNode.objects.filter(daily_summary=summary).delete()
-    memory_node = MemoryNode.objects.create(user=user, daily_summary=summary)
+    # Step 10: Save Event Nodes
+    EventNode.objects.filter(daily_summary=summary).delete()
 
     for event_data in event_nodes_data:
         EventNode.objects.create(
-            memory_node=memory_node,
+            user=user,
             daily_summary=summary,
             event=event_data['event'],
+            category=event_data.get('category', 'other'),
+            sentiment=event_data.get('sentiment', 'neutral'),
+            intensity=event_data.get('intensity', 2),
             date=today,
         )
 

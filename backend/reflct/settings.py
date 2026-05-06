@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-mn^qeda_jq429^s76mb0c@@$ufbnv)s)p_5l#xone^3&d9ydo('
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-mn^qeda_jq429^s76mb0c@@$ufbnv)s)p_5l#xone^3&d9ydo(')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = []
 
@@ -148,3 +151,5 @@ WHISPER_MODEL = 'base'    # options: tiny, base, small, medium, large
 LLM_PROVIDER = 'gemini'   # options: 'gemini', 'claude'
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
+
+GEMINI_REQUEST_DELAY = 3  # seconds between LLM calls, increase if still hitting quota
