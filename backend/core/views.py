@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from django.utils import timezone
 from datetime import datetime, timedelta
 from django.db.models import Avg
 from core.serializers import (
@@ -218,9 +219,66 @@ class RecommendationView(APIView):
             )
 
 
+# class JournalEntryView(APIView):
+#     parser_classes = [MultiPartParser, FormParser]
+#     permission_classes = [IsAuthenticated]
+
+#     def post(self, request):
+#         audio_file = request.FILES.get('audio')
+#         if not audio_file:
+#             return Response(
+#                 {'error': 'Audio file is required'},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
+
+#         rate = request.data.get('rate')
+#         sleep_duration = request.data.get('sleep_duration')
+
+#         try:
+#             rate = int(rate) if rate else None
+#             sleep_duration = float(sleep_duration) if sleep_duration else None
+#         except ValueError:
+#             return Response(
+#                 {'error': 'Invalid rate or sleep_duration'},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
+
+#         try:
+#             result = process_journal_entry(
+#                 user=request.user,
+#                 audio_file=audio_file,
+#                 rate=rate,
+#                 sleep_duration=sleep_duration,
+#             )
+#             return Response(result, status=status.HTTP_201_CREATED)
+#         except Exception as e:
+#             return Response(
+#                 {'error': str(e)},
+#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#             )
+
+
 class JournalEntryView(APIView):
     parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        date = request.query_params.get('date', str(timezone.now().date()))
+        if not date:
+            return Response(
+                {'error': 'date query parameter is required. Format: YYYY-MM-DD'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            summary = DailySummary.objects.get(user=request.user, date=date)
+        except DailySummary.DoesNotExist:
+            return Response(
+                {'error': f'No journal entry found for {date}'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = DailySummarySerializer(summary)
+        return Response(serializer.data)
 
     def post(self, request):
         audio_file = request.FILES.get('audio')
@@ -255,3 +313,12 @@ class JournalEntryView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+
+class JournalHistoryView(APIView):
+    def get(self, request):
+        summaries = DailySummary.objects.filter(
+            user=request.user
+        ).order_by('-date').values('id', 'date', 'burnout_score', 'chill_day', 'rate')
+
+        return Response(list(summaries))

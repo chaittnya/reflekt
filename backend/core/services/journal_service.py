@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.utils import timezone
 from core.models import DailySummary, EventNode, Question, QuestionAnswer
 from core.services.stt import get_stt_service
@@ -44,47 +45,45 @@ def process_journal_entry(user, audio_file, rate=None, sleep_duration=None):
     # Step 7: Generate event nodes
     event_nodes_data = llm.generate_event_nodes(refined_text, str(today))
 
-    # Step 8: Save DailySummary
-    summary, created = DailySummary.objects.update_or_create(
-        user=user,
-        date=today,
-        defaults={
-            'text': refined_text,
-            'raw_text': raw_text,
-            'rate': rate,
-            'sleep_duration': sleep_duration,
-            'burnout_score': burnout_score,
-            'chill_day': chill_day,
-        }
-    )
-
-    # Step 9: Save QuestionAnswers
-    QuestionAnswer.objects.filter(daily_summary=summary).delete()
-    question_map = {q['quest_number']: q for q in questions}
-
-    for ans in inferred_answers:
-        question_obj = Question.objects.get(quest_number=ans['quest_number'])
-        QuestionAnswer.objects.create(
-            daily_summary=summary,
-            question=question_obj,
-            answer=ans.get('answer'),
-            inference_confidence=ans.get('confidence', 'medium'),
-            score=ans.get('score'),
-        )
-
-    # Step 10: Save Event Nodes
-    EventNode.objects.filter(daily_summary=summary).delete()
-
-    for event_data in event_nodes_data:
-        EventNode.objects.create(
+    # Step 8-10: Save everything in a single transaction
+    with transaction.atomic():
+        summary, created = DailySummary.objects.update_or_create(
             user=user,
-            daily_summary=summary,
-            event=event_data['event'],
-            category=event_data.get('category', 'other'),
-            sentiment=event_data.get('sentiment', 'neutral'),
-            intensity=event_data.get('intensity', 2),
             date=today,
+            defaults={
+                'text': refined_text,
+                'raw_text': raw_text,
+                'rate': rate,
+                'sleep_duration': sleep_duration,
+                'burnout_score': burnout_score,
+                'chill_day': chill_day,
+            }
         )
+
+        QuestionAnswer.objects.filter(daily_summary=summary).delete()
+        question_map = {q['quest_number']: q for q in questions}
+
+        for ans in inferred_answers:
+            question_obj = Question.objects.get(quest_number=ans['quest_number'])
+            QuestionAnswer.objects.create(
+                daily_summary=summary,
+                question=question_obj,
+                answer=ans.get('answer'),
+                inference_confidence=ans.get('confidence', 'medium'),
+                score=ans.get('score'),
+            )
+
+        EventNode.objects.filter(daily_summary=summary).delete()
+        for event_data in event_nodes_data:
+            EventNode.objects.create(
+                user=user,
+                daily_summary=summary,
+                event=event_data['event'],
+                category=event_data.get('category', 'other'),
+                sentiment=event_data.get('sentiment', 'neutral'),
+                intensity=event_data.get('intensity', 2),
+                date=today,
+            )
 
     # Step 11: Identify low confidence answers for follow-up
     follow_up_questions = [
