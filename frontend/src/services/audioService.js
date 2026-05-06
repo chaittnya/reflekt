@@ -3,7 +3,7 @@ import api from './api';
 export const audioService = {
   async uploadAudio(audioBlob) {
     const formData = new FormData();
-    formData.append('audio', audioBlob, 'journal.wav');
+    formData.append('audio', new File([audioBlob], 'journal.wav', { type: 'audio/wav' }), 'journal.wav');
 
     const response = await api.post('/journal/', formData);
     const result = response.data;
