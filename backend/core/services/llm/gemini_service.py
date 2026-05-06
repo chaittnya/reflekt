@@ -55,7 +55,7 @@ class GeminiLLMService(BaseLLMService):
     def __init__(self):
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
         self.model = 'gemini-2.5-flash'
-        self.delay = getattr(settings, 'GEMINI_REQUEST_DELAY', 3)  # seconds between calls
+        self.delay = getattr(settings, 'GEMINI_REQUEST_DELAY', 0)  # seconds between calls
 
     def _ask(self, prompt: str) -> str:
         response = self.client.models.generate_content(

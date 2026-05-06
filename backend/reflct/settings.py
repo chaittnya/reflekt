@@ -149,11 +149,12 @@ STT_PROVIDER = 'whisper'  # options: 'whisper'
 WHISPER_MODEL = 'base'    # options: tiny, base, small, medium, large
 
 # LLM Config
-LLM_PROVIDER = 'gemini'   # options: 'gemini', 'claude'
+LLM_PROVIDER = os.environ.get('LLM_PROVIDER', 'gemini')  # options: 'gemini', 'claude'
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
 
-GEMINI_REQUEST_DELAY = 0.5  # seconds between LLM calls, increase if still hitting quota
+GEMINI_REQUEST_DELAY = 0  # seconds between LLM calls, increase if still hitting quota
 
 LOGGING = {
     'version': 1,

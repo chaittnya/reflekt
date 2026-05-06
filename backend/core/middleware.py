@@ -13,12 +13,12 @@ class RequestLoggingMiddleware:
         start_time = time.time()
 
         # Log incoming request
-        logger.info(f"→ {request.method} {request.path} | user={self._get_user(request)}")
+        logger.info(f"{request.method} {request.path} | user={self._get_user(request)}")
 
         response = self.get_response(request)
 
         duration = (time.time() - start_time) * 1000  # ms
-        logger.info(f"← {request.method} {request.path} | status={response.status_code} | {duration:.1f}ms")
+        logger.info(f"{request.method} {request.path} | status={response.status_code} | {duration:.1f}ms")
 
         return response
 
